@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	logger "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/log"
 )
 
 // TickerCallback callback function to run on ticker interval
@@ -21,10 +21,10 @@ func startTicker(ctx context.Context, tick TickerCallback) {
 			case <-ticker.C:
 				go tick(ctx)
 			case <-ctx.Done():
-				logger.Info().Msg("Ticker stopping by context done")
+				log.Info().Msg("Ticker stopping by context done")
 				return
 			}
 		}
 	}()
-	logger.Info().Msg("Ticker Started")
+	log.Info().Msg("Ticker Started")
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	logger "github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/log"
 )
 
 // WorkerJob -
@@ -35,14 +35,14 @@ func startWorkers(ctx context.Context, workers int) Workers {
 }
 
 func startWorker(ctx context.Context, workerChannel <-chan WorkerJob, id int) {
-	logger.Info().Int("workerID", id).Msg("Starting worker")
+	log.Info().Int("workerID", id).Msg("Starting worker")
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Info().Int("workerID", id).Msg("Closing worker by context done")
+			log.Info().Int("workerID", id).Msg("Closing worker by context done")
 			return
 		case workerJob := <-workerChannel:
-			logger.Info().
+			log.Info().
 				Str("batchRef", workerJob.BatchRef).
 				Int("workerID", id).
 				Str("jobName", workerJob.Job.Name).
@@ -50,14 +50,14 @@ func startWorker(ctx context.Context, workerChannel <-chan WorkerJob, id int) {
 			// run the job
 			err := workerJob.Job.RunJob(ctx)
 			if err != nil {
-				logger.Warn().
+				log.Warn().
+					Err(err).
 					Str("batchRef", workerJob.BatchRef).
 					Int("workerID", id).
 					Str("jobName", workerJob.Job.Name).
-					Str("error", err.Error()).
 					Msg("job failed")
 			} else {
-				logger.Info().
+				log.Info().
 					Str("batchRef", workerJob.BatchRef).
 					Int("workerID", id).
 					Str("jobName", workerJob.Job.Name).

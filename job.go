@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path"
 	"time"
 
-	logger "github.com/rs/zerolog/log"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/rs/zerolog/log"
 
-	webhook "./webhook"
+	webhook "github.com/spid37/scheduler/webhook"
 )
 
 // JobData -
@@ -46,7 +46,7 @@ type ScheduledJobs struct {
 // RunJob run a job
 func (j *Job) RunJob(ctx context.Context) error {
 	var err error
-	logger.Info().
+	log.Info().
 		Str("jobName", j.Name).
 		Msg("job starting")
 
@@ -68,9 +68,10 @@ func (j *Job) RunJob(ctx context.Context) error {
 }
 
 func loadJobs(jobsPath string) []*Job {
+	var err error
 	files, err := ioutil.ReadDir(jobsPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msg(err.Error())
 	}
 
 	var jobs []*Job
@@ -83,7 +84,7 @@ func loadJobs(jobsPath string) []*Job {
 		var job Job
 		var data json.RawMessage
 		job.Data = &data
-		err := json.Unmarshal(plan, &job)
+		err = json.Unmarshal(plan, &job)
 		if err != nil {
 			panic(err)
 		}
@@ -91,16 +92,17 @@ func loadJobs(jobsPath string) []*Job {
 		switch job.Type {
 		case "webhook":
 			w := new(webhook.Data)
-			if err := w.LoadData(data); err != nil {
-				log.Fatal(err)
+			if err = w.LoadData(data); err != nil {
+				log.Fatal().Err(err)
 			}
 			job.Data = w
 		default:
-			log.Fatalf("unknown message type: %q", job.Type)
+			log.Fatal().Msgf("unknown message type: %q", job.Type)
 		}
+		spew.Dump("HERE!!")
 		nextRun := job.Schedule.findNextRun(time.Now())
 		if nextRun.IsZero() {
-			log.Fatalf("failed to find next run for: %s", job.Name)
+			log.Fatal().Msgf("failed to find next run for: %s", job.Name)
 		}
 
 		jobs = append(jobs, &job)
@@ -118,13 +120,13 @@ func getScheduledJobs(jobs []*Job) ScheduledJobs {
 	}
 	for _, job := range jobs {
 		if job.Schedule.isNow(date) {
-			logger.Info().
+			log.Info().
 				Str("jobName", job.Name).
 				Msg("job should run now")
 			scheduledJobs.Jobs = append(scheduledJobs.Jobs, job)
 		} else {
 			nextRun := job.Schedule.findNextRun(date)
-			logger.Debug().
+			log.Debug().
 				Str("jobName", job.Name).
 				Str("runDate", nextRun.Format(time.RFC3339)).
 				Msg("job next run")
@@ -138,7 +140,7 @@ func runJobs(
 	workerChannel chan WorkerJob,
 	scheduledJobs ScheduledJobs,
 ) {
-	logger.Info().
+	log.Info().
 		Int("jobCount", len(scheduledJobs.Jobs)).
 		Str("batchRef", scheduledJobs.BatchRef).
 		Str("runDate", scheduledJobs.Date.Format(time.RFC3339)).
@@ -158,11 +160,11 @@ func runJobs(
 		select {
 		// close context on context cancel
 		case <-ctx.Done():
-			logger.Info().Msg("run jobs exited by context done")
+			log.Info().Msg("run jobs exited by context done")
 			return
 		// add the job to the queue
 		case workerChannel <- workerJob:
-			logger.Info().Str("jobName", job.Name).Msg("job sent to channel")
+			log.Info().Str("jobName", job.Name).Msg("job sent to channel")
 			break
 		}
 	}
