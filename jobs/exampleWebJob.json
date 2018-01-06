@@ -1,0 +1,24 @@
+{
+  "name": "My first Job",
+  "description": "A description of my first job",
+  "version": "0.0.1",
+  "author": "Nicholas Terrell <nicholas@terrell.com.au>",
+  "schedule": {
+    "timezone": "UTC",
+    "dayOfWeek": [],
+    "month": [],
+    "day": [],
+    "hour": [],
+    "minute": []
+  },
+  "type": "webhook",
+  "allowOverlap": false,
+  "data": {
+    "method": "GET",
+    "url": "https://requestb.in/1g7hga11",
+    "timeout": 10000,
+    "expectedResponseStatus": 200,
+    "expectedResponseContentType": "text/html",
+    "expectedResponse": "ok"
+  }
+}
