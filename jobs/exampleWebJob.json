@@ -1,6 +1,6 @@
 {
-  "name": "My first Job",
-  "description": "A description of my first job",
+  "name": "My example job",
+  "description": "A description of my example job",
   "version": "0.0.1",
   "author": "Nicholas Terrell <nicholas@terrell.com.au>",
   "schedule": {

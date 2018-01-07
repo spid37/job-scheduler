@@ -9,10 +9,10 @@ import (
 	"path"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/rs/zerolog/log"
 
-	webhook "github.com/spid37/scheduler/webhook"
+	sleepJob "github.com/spid37/scheduler/module/sleep"
+	webJob "github.com/spid37/scheduler/module/webhook"
 )
 
 // JobData -
@@ -91,7 +91,13 @@ func loadJobs(jobsPath string) []*Job {
 
 		switch job.Type {
 		case "webhook":
-			w := new(webhook.Data)
+			w := new(webJob.Data)
+			if err = w.LoadData(data); err != nil {
+				log.Fatal().Err(err)
+			}
+			job.Data = w
+		case "sleep":
+			w := new(sleepJob.Data)
 			if err = w.LoadData(data); err != nil {
 				log.Fatal().Err(err)
 			}
@@ -99,7 +105,7 @@ func loadJobs(jobsPath string) []*Job {
 		default:
 			log.Fatal().Msgf("unknown message type: %q", job.Type)
 		}
-		spew.Dump("HERE!!")
+
 		nextRun := job.Schedule.findNextRun(time.Now())
 		if nextRun.IsZero() {
 			log.Fatal().Msgf("failed to find next run for: %s", job.Name)

@@ -1,0 +1,19 @@
+{
+  "name": "My sleep job",
+  "description": "A job that does nothing but sleep for 40 seconds every 5 min",
+  "version": "0.0.1",
+  "author": "Nicholas Terrell <nicholas@terrell.com.au>",
+  "schedule": {
+    "timezone": "UTC",
+    "dayOfWeek": [],
+    "month": [],
+    "day": [],
+    "hour": [],
+    "minute": [0,5,10,15,20,25,30,35,40,45,50,55]
+  },
+  "type": "sleep",
+  "allowOverlap": false,
+  "data": {
+    "sleepSeconds": 40
+  }
+}

@@ -30,7 +30,6 @@ func (d *Data) LoadData(data []byte) error {
 // Send Send a Job request
 func (d *Data) Send() error {
 	var err error
-	time.Sleep(10 * time.Second)
 
 	client := http.Client{}
 	if d.Timeout > 0 {
