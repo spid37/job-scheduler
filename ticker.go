@@ -21,10 +21,10 @@ func startTicker(ctx context.Context, tick TickerCallback) {
 			case <-ticker.C:
 				go tick(ctx)
 			case <-ctx.Done():
-				log.Info().Msg("Ticker stopping by context done")
+				log.Info().Msg("ticker stopping by context done")
 				return
 			}
 		}
 	}()
-	log.Info().Msg("Ticker Started")
+	log.Info().Msg("ticker Started")
 }

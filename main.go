@@ -36,15 +36,15 @@ func start(jobs []*Job) {
 
 	log.Info().
 		Int("count", workerCount).
-		Msg("Workers started")
+		Msg("workers started")
 
 	// create a callback to send to the ticker to run on interval
 	tick := func(ctx context.Context) {
 		scheduledJobs := getScheduledJobs(jobs)
 		log.Info().
-			Str("BatchRef", scheduledJobs.BatchRef).
-			Str("RunDate", scheduledJobs.Date.Format(time.RFC3339)).
-			Msg("Tick started")
+			Str("batchRef", scheduledJobs.BatchRef).
+			Str("runDate", scheduledJobs.Date.Format(time.RFC3339)).
+			Msg("tick started")
 		runJobs(ctx, workers.ch, scheduledJobs)
 	}
 	// start the ticker
@@ -52,13 +52,13 @@ func start(jobs []*Job) {
 
 	// catch ctrl-c and exit
 	quiter := func() {
-		log.Info().Msg("Quitter has been called")
+		log.Info().Msg("quitter has been called")
 		cancel()
 	}
 	catchInterrupt(quiter)
 
 	workers.wg.Wait() // wait for workers to quit
-	log.Info().Msg("Exiting..")
+	log.Info().Msg("exiting..")
 }
 
 // catchInterrupt listen for an interrupt
@@ -70,7 +70,7 @@ func catchInterrupt(cb func()) chan os.Signal {
 	go func() {
 		defer close(c)
 		for sig := range c {
-			log.Info().Str("sig", sig.String()).Msg("Received interrupt")
+			log.Info().Str("sig", sig.String()).Msg("received interrupt")
 			//fmt.Printf("Received ctrl-c: %s\n", sig)
 			// sig is a ^C, handle it
 			cb()
