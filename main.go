@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"time"
@@ -10,18 +12,37 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const configJobsPath = "./jobs"
-
 func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
+var jobPath string
+
 func main() {
+	// load the arguments
+	loadArgs()
+	err := checkPathExists(jobPath)
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
 	// load the jobs from json files
-	jobs := loadJobs(configJobsPath)
+	jobs := loadJobs(jobPath)
 
 	// start the ticker and run the jobs
 	start(jobs)
+}
+
+func loadArgs() {
+	flag.StringVar(&jobPath, "d", "", "location of job files")
+
+	flag.Parse()
+}
+
+func checkPathExists(path string) error {
+	if stat, err := os.Stat(path); err == nil && stat.IsDir() {
+		return nil
+	}
+	return fmt.Errorf("Path '%s' is invalid or not a directory", path)
 }
 
 func start(jobs []*Job) {
