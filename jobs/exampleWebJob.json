@@ -2,7 +2,7 @@
   "name": "My web job",
   "description": "A description of my web job",
   "version": "0.0.1",
-  "author": "Nicholas Terrell <nicholas@terrell.com.au>",
+  "author": "Nicholas Terrell <email@addre.ss>",
   "schedule": {
     "timezone": "UTC",
     "dayOfWeek": [],
