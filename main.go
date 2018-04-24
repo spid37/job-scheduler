@@ -26,7 +26,10 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 	// load the jobs from json files
-	jobs := loadJobs(jobPath)
+	jobs, err := loadJobs(jobPath)
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
 
 	// start the ticker and run the jobs
 	start(jobs)

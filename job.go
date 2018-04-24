@@ -15,7 +15,7 @@ import (
 	webJob "github.com/spid37/scheduler/module/webhook"
 )
 
-// JobData -
+// JobData interface for a Job.Data module
 type JobData interface {
 	LoadData(data []byte) error
 	Send() error
@@ -67,54 +67,65 @@ func (j *Job) RunJob(ctx context.Context) error {
 	return err
 }
 
-func loadJobs(jobsPath string) []*Job {
+func loadJobs(jobsPath string) ([]*Job, error) {
 	var err error
+	var jobs []*Job
+
 	files, err := ioutil.ReadDir(jobsPath)
 	if err != nil {
-		log.Fatal().Msg(err.Error())
+		return jobs, err
 	}
-
-	var jobs []*Job
 
 	for _, file := range files {
 		jobPath := path.Join(jobsPath, file.Name())
 		fmt.Println(jobPath)
-
-		plan, _ := ioutil.ReadFile(jobPath)
-		var job Job
-		var data json.RawMessage
-		job.Data = &data
-		err = json.Unmarshal(plan, &job)
+		jobString, _ := ioutil.ReadFile(jobPath)
+		job, err := loadJob(jobString)
 		if err != nil {
-			panic(err)
+			return jobs, err
 		}
-
-		switch job.Type {
-		case "webhook":
-			w := new(webJob.Data)
-			if err = w.LoadData(data); err != nil {
-				log.Fatal().Err(err)
-			}
-			job.Data = w
-		case "sleep":
-			w := new(sleepJob.Data)
-			if err = w.LoadData(data); err != nil {
-				log.Fatal().Err(err)
-			}
-			job.Data = w
-		default:
-			log.Fatal().Msgf("unknown message type: %q", job.Type)
-		}
-
-		nextRun := job.Schedule.findNextRun(time.Now())
-		if nextRun.IsZero() {
-			log.Fatal().Msgf("failed to find next run for: %s", job.Name)
-		}
-
 		jobs = append(jobs, &job)
 	}
 
-	return jobs
+	return jobs, err
+}
+
+func loadJob(jobString []byte) (Job, error) {
+	var err error
+	var job Job
+
+	// use raw message so we dont unmarshall data
+	var data json.RawMessage
+	job.Data = &data
+
+	err = json.Unmarshal(jobString, &job)
+	if err != nil {
+		return job, err
+	}
+
+	var jd JobData
+	switch job.Type {
+	case "webhook":
+		jd = new(webJob.Data)
+	case "sleep":
+		jd = new(sleepJob.Data)
+	default:
+		err = fmt.Errorf("unknown message type: %q", job.Type)
+		return job, err
+	}
+
+	if err = jd.LoadData(data); err != nil {
+		return job, err
+	}
+	job.Data = jd
+
+	nextRun := job.Schedule.findNextRun(time.Now())
+	if nextRun.IsZero() {
+		err = fmt.Errorf("failed to find next run for %q", job.Name)
+		return job, err
+	}
+
+	return job, err
 }
 
 func getScheduledJobs(jobs []*Job) ScheduledJobs {

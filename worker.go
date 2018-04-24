@@ -41,7 +41,10 @@ func startWorker(ctx context.Context, workerChannel <-chan WorkerJob, id int) {
 		case <-ctx.Done():
 			log.Info().Int("workerID", id).Msg("closing worker by context done")
 			return
-		case workerJob := <-workerChannel:
+		case workerJob, ok := <-workerChannel:
+			if !ok {
+				log.Fatal().Msg("CLOSED WORKER JOB")
+			}
 			log.Info().
 				Str("batchRef", workerJob.BatchRef).
 				Int("workerID", id).
